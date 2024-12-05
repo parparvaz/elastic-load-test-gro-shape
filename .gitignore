@@ -1,3 +1,5 @@
 certs
 *.xlsx
 fake_polygons.json
+.idea
+.vscode
