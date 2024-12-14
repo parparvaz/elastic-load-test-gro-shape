@@ -55,7 +55,9 @@ func (u *GeoShapeElasticSearch) MakeGeoShapeV1Index(ctx context.Context) {
 	if err != nil {
 		log.Fatalf("Error creating the index: %s", err)
 	}
-	defer res.Body.Close()
+	defer func() {
+		_ = res.Body.Close()
+	}()
 
 	if res.IsError() {
 		log.Fatalf("Error response: %s", res.String())
@@ -64,19 +66,22 @@ func (u *GeoShapeElasticSearch) MakeGeoShapeV1Index(ctx context.Context) {
 	}
 }
 
-func (u *GeoShapeElasticSearch) FindByQuery(ctx context.Context, domain elasticsearch.Search) error {
+func (u *GeoShapeElasticSearch) FindByQuery(ctx context.Context, domain elasticsearch.Search) (interface{}, error) {
 	data, err := json.Marshal(domain)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	_, err = u.conn.Client.Search(
+	res, err := u.conn.Client.Search(
 		u.conn.Client.Search.WithIndex(GeoShapeV1IndexName),
 		u.conn.Client.Search.WithBody(strings.NewReader(string(data))),
 		u.conn.Client.Search.WithSize(1),
 		u.conn.Client.Search.WithPretty(),
+		u.conn.Client.Search.WithContext(ctx),
 	)
-	return err
+	body, err := io.ReadAll(res.Body)
+
+	return string(body), err
 }
 
 func (u *GeoShapeElasticSearch) InsertGeoShape(ctx context.Context, docs []domain.GeoShapeV1Index) error {
@@ -101,7 +106,9 @@ func (u *GeoShapeElasticSearch) InsertGeoShape(ctx context.Context, docs []domai
 	if err != nil {
 		log.Fatalf("Error performing bulk operation: %s", err)
 	}
-	defer res.Body.Close()
+	defer func() {
+		_ = res.Body.Close()
+	}()
 
 	if res.IsError() {
 		log.Fatalf("Bulk request error: %s", res.String())
@@ -120,14 +127,14 @@ func (u *GeoShapeElasticSearch) CheckElasticsearchStatus(context.Context) error 
 	if err != nil {
 		return fmt.Errorf("error checking cluster health: %s", err)
 	}
-	defer res.Body.Close()
+	defer func() {
+		_ = res.Body.Close()
+	}()
 
-	// نمایش نتیجه وضعیت کلستر
 	if res.IsError() {
 		return fmt.Errorf("error response from Elasticsearch: %s", res.String())
 	}
 
-	// نمایش وضعیت کلستر
 	fmt.Println("Cluster health:")
 	fmt.Println(res)
 	return nil
@@ -141,14 +148,14 @@ func (u *GeoShapeElasticSearch) CheckElasticsearchIndices(context.Context) error
 	if err != nil {
 		return fmt.Errorf("error checking indices: %s", err)
 	}
-	defer res.Body.Close()
+	defer func() {
+		_ = res.Body.Close()
+	}()
 
-	// نمایش نتیجه وضعیت ایندکس‌ها
 	if res.IsError() {
 		return fmt.Errorf("error response from Elasticsearch: %s", res.String())
 	}
 
-	// نمایش وضعیت ایندکس‌ها
 	fmt.Println("Indices status:")
 	fmt.Println(res)
 	return nil
@@ -165,7 +172,9 @@ func (u *GeoShapeElasticSearch) GetSystemResourceUsage(context.Context) (elastic
 		return elasticsearch.ClusterNodeStats{}, err
 	}
 
-	defer res.Body.Close()
+	defer func() {
+		_ = res.Body.Close()
+	}()
 
 	if res.IsError() {
 		return elasticsearch.ClusterNodeStats{}, err

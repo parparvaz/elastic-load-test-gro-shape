@@ -38,6 +38,3 @@ func connect() {
 func E() *ElasticSearch {
 	return &e
 }
-
-//Devtrap
-//https://github.com/ali-mohammadzadeh

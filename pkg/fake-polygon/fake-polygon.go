@@ -15,24 +15,29 @@ type FakePolygon struct {
 	Polygons [][][]float64
 }
 
+const (
+	minLat = -90.0
+	maxLat = 90.0
+	minLng = -90.0
+	maxLng = 90.0
+)
+
 func Make(count int) {
-	rand.Seed(time.Now().UnixNano())
+	rand.NewSource(time.Now().UnixNano())
 	log.Println(count)
-	minLat := 35.5
-	maxLat := 35.9
-	minLon := 51.2
-	maxLon := 51.6
 
 	radius := 4.5
 
-	fakePolygons := generateFakePolygons(count, minLat, maxLat, minLon, maxLon, radius)
+	fakePolygons := generateFakePolygons(count, radius)
 
 	file, err := os.Create("fake_polygons.json")
 	if err != nil {
 		fmt.Println("Error creating file:", err)
 		return
 	}
-	defer file.Close()
+	defer func() {
+		_ = file.Close()
+	}()
 
 	encoder := json.NewEncoder(file)
 	err = encoder.Encode(fakePolygons)
@@ -78,12 +83,12 @@ func generateRandomPolygon(centerLat, centerLon, radius float64) Polygon {
 	return Polygon{Coordinates: coordinates}
 }
 
-func generateFakePolygons(num int, minLat, maxLat, minLon, maxLon, radius float64) []Polygon {
+func generateFakePolygons(num int, radius float64) []Polygon {
 	var polygons []Polygon
 	usedCenters := make(map[string]bool)
 
 	for len(polygons) < num {
-		center := randomLocationInRange(minLat, maxLat, minLon, maxLon)
+		center := randomLocationInRange(minLat, maxLat, minLng, maxLng)
 		centerLat := center[1]
 		centerLon := center[0]
 
@@ -105,7 +110,9 @@ func GetPolygons() ([]Polygon, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
+	defer func() {
+		_ = file.Close()
+	}()
 
 	data, err := io.ReadAll(file)
 	if err != nil {
@@ -118,4 +125,21 @@ func GetPolygons() ([]Polygon, error) {
 	}
 
 	return polygon, nil
+}
+
+func randomFloatInRange(min, max float64) float64 {
+	return min + rand.Float64()*(max-min)
+}
+
+func randomLatLngInTehran() (float64, float64) {
+	lat := randomFloatInRange(minLat, maxLat)
+	lng := randomFloatInRange(minLng, maxLng)
+	return lat, lng
+}
+
+func GenerateRandomLatLng() []float64 {
+	rand.NewSource(time.Now().UnixNano())
+	lat, lng := randomLatLngInTehran()
+	return []float64{lat, lng}
+
 }

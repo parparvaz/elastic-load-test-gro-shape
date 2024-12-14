@@ -2,3 +2,45 @@ database:
   elasticsearch:
     address: 127.0.0.1
     port: 9200
+
+loadTest:
+#  scenario1:
+#    wholeTime: 60 #second
+#    interval: 1 #seccond
+#    requestCount: 50
+#  scenario2:
+#    wholeTime: 60 #second
+#    interval: 1 #seccond
+#    requestCount: 100
+#  scenario3:
+#    wholeTime: 60 #second
+#    interval: 1 #seccond
+#    requestCount: 150
+  scenario4:
+    wholeTime: 60 #second
+    interval: 1 #seccond
+    requestCount: 250
+#  scenario5:
+#    wholeTime: 60 #second
+#    interval: 1 #seccond
+#    requestCount: 300
+#  scenario6:
+#    wholeTime: 60 #second
+#    interval: 1 #seccond
+#    requestCount: 350
+#  scenario7:
+#    wholeTime: 60 #second
+#    interval: 1 #seccond
+#    requestCount: 400
+#  scenario8:
+#    wholeTime: 60 #second
+#    interval: 1 #seccond
+#    requestCount: 100
+#  scenario9:
+#    wholeTime: 60 #second
+#    interval: 1 #seccond
+#    requestCount: 150
+#  scenario10:
+#    wholeTime: 60 #second
+#    interval: 1 #seccond
+#    requestCount: 200

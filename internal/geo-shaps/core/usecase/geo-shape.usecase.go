@@ -51,7 +51,7 @@ func (u *GeoShapeUsecase) InsertFakePolygonsToElastic(ctx context.Context) {
 	var geoShapes []domain.GeoShapeV1Index
 
 	for _, polygon := range polygons {
-		rand.Seed(time.Now().UnixNano())
+		rand.NewSource(time.Now().UnixNano())
 
 		randomShopIDNumber := rand.Intn(1000) + 1
 		randomPolygonIDNumber := rand.Intn(100) + 1
@@ -219,15 +219,15 @@ func (u *GeoShapeUsecase) elasticLoadTest(ctx context.Context, loadTest domain.L
 			defer requestWg.Done()
 			startReq := time.Now()
 
-			err := u.geoShapeElasticsearch.FindByQuery(ctx, utilsElasticsearch.Search{
+			_, err := u.geoShapeElasticsearch.FindByQuery(ctx, utilsElasticsearch.Search{
 				Query: utilsElasticsearch.SearchQuery{
 					GeoShape: utilsElasticsearch.SearchQueryGeoShape{
 						Location: utilsElasticsearch.SearchQueryGeoShapeLocation{
 							Shape: utilsElasticsearch.SearchQueryGeoShapeLocationShape{
 								Type:        "point",
-								Coordinates: []float64{35.738314, 51.169862},
+								Coordinates: fake_polygon.GenerateRandomLatLng(),
 							},
-							Relation: "within",
+							Relation: "intersects",
 						},
 					},
 				},

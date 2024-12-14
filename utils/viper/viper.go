@@ -27,8 +27,15 @@ type Database struct {
 	ElasticSearch ElasticSearch `yaml:"elasticsearch" required:"true"`
 }
 
+type LoadTest struct {
+	WholeTime    int `yaml:"wholeTime"`
+	Interval     int `yaml:"interval"`
+	RequestCount int `yaml:"requestCount"`
+}
+
 type Config struct {
-	Database Database `yaml:"database" required:"true"`
+	Database Database            `yaml:"database" required:"true"`
+	LoadTest map[string]LoadTest `yaml:"loadTest"`
 }
 
 func InitConfigs() Config {
@@ -36,7 +43,7 @@ func InitConfigs() Config {
 	viper.SetConfigName("config")
 	viper.AddConfigPath(dir)
 	viper.AddConfigPath(".")
-	viper.ReadInConfig()
+	_ = viper.ReadInConfig()
 	conf := loadConfigs()
 
 	viper.OnConfigChange(func(in fsnotify.Event) {

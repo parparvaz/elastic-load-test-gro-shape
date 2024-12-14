@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/xuri/excelize/v2"
 	"log"
+	"os"
 	"sync"
 )
 
@@ -31,28 +32,75 @@ func (u *ExcelUsecase) GenerateLocalMonitoringExcel(monitoringData []domain.Loca
 	wg.Done()
 }
 
+func (u *ExcelUsecase) openExcelFile(fileName, sheet string) (*excelize.File, error) {
+	var file *excelize.File
+	var err error
+	if _, err = os.Stat(fileName); os.IsNotExist(err) {
+		file = excelize.NewFile()
+	} else {
+		file, err = excelize.OpenFile(fileName)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	_, _ = file.NewSheet(sheet)
+	return file, nil
+}
+
 func (u *ExcelUsecase) createExcelFile(sheet string) *excelize.File {
 	file := excelize.NewFile()
-	file.NewSheet(sheet)
+	_, err := file.NewSheet(sheet)
+	if err != nil {
+		log.Println(err)
+	}
 	return file
 }
 
 func (u *ExcelUsecase) addLocalMonitoringHeader(sheet string, file *excelize.File, rowCounter int) (*excelize.File, int) {
 	headers := []string{"Timestamp", "CPU Usage (%)", "Memory Usage (%)", "Disk Usage (%)", "Network Sent (Bytes)", "Network Received (Bytes)"}
+	var err error
+
 	for i, header := range headers {
-		cell := fmt.Sprintf("%s%d", string('A'+i), rowCounter)
-		file.SetCellValue(sheet, cell, header)
+		cell := fmt.Sprintf("%s%d", string(rune('A'+i)), rowCounter)
+		err = file.SetCellValue(sheet, cell, header)
+		if err != nil {
+			log.Println(err)
+		}
 	}
 	return file, rowCounter + 1
 }
 
 func (u *ExcelUsecase) addLocalMonitoringRow(sheet string, file *excelize.File, rowCounter int, data domain.LocalMonitoring) (*excelize.File, int) {
-	file.SetCellValue(sheet, fmt.Sprintf("A%d", rowCounter), data.Timestamp)
-	file.SetCellValue(sheet, fmt.Sprintf("B%d", rowCounter), data.CpuUsage)
-	file.SetCellValue(sheet, fmt.Sprintf("C%d", rowCounter), data.MemoryUsage)
-	file.SetCellValue(sheet, fmt.Sprintf("D%d", rowCounter), data.DiskUsage)
-	file.SetCellValue(sheet, fmt.Sprintf("E%d", rowCounter), data.NetSent)
-	file.SetCellValue(sheet, fmt.Sprintf("F%d", rowCounter), data.NetRecv)
+	err := file.SetCellValue(sheet, fmt.Sprintf("A%d", rowCounter), data.Timestamp)
+	if err != nil {
+		log.Println(err)
+	}
+
+	err = file.SetCellValue(sheet, fmt.Sprintf("B%d", rowCounter), data.CpuUsage)
+	if err != nil {
+		log.Println(err)
+	}
+
+	err = file.SetCellValue(sheet, fmt.Sprintf("C%d", rowCounter), data.MemoryUsage)
+	if err != nil {
+		log.Println(err)
+	}
+
+	err = file.SetCellValue(sheet, fmt.Sprintf("D%d", rowCounter), data.DiskUsage)
+	if err != nil {
+		log.Println(err)
+	}
+
+	err = file.SetCellValue(sheet, fmt.Sprintf("E%d", rowCounter), data.NetSent)
+	if err != nil {
+		log.Println(err)
+	}
+
+	err = file.SetCellValue(sheet, fmt.Sprintf("F%d", rowCounter), data.NetRecv)
+	if err != nil {
+		log.Println(err)
+	}
 
 	return file, rowCounter + 1
 }
@@ -80,21 +128,48 @@ func (u *ExcelUsecase) GenerateElasticLoadTestExcel(testData []domain.ElasticLoa
 
 func (u *ExcelUsecase) addElasticLoadTestHeader(sheet string, file *excelize.File, rowCounter int) (*excelize.File, int) {
 	headers := []string{"Request Number", "Start", "End", "Duration (ms)", "Duration (ns)", "Status Sent"}
+	var err error
 	for i, header := range headers {
-		cell := fmt.Sprintf("%s%d", string('A'+i), rowCounter)
-		file.SetCellValue(sheet, cell, header)
+		cell := fmt.Sprintf("%s%d", string(rune('A'+i)), rowCounter)
+		err = file.SetCellValue(sheet, cell, header)
+		if err != nil {
+			log.Println(err)
+		}
 	}
 	return file, rowCounter + 1
 }
 
 func (u *ExcelUsecase) addElasticLoadTestRow(sheet string, file *excelize.File, data domain.ElasticLoadTest) *excelize.File {
 	row := data.RequestNumber + 2
-	file.SetCellValue(sheet, fmt.Sprintf("A%d", row), data.RequestNumber)
-	file.SetCellValue(sheet, fmt.Sprintf("B%d", row), data.Start.Format("2006-01-02 15:04:05.000000"))
-	file.SetCellValue(sheet, fmt.Sprintf("C%d", row), data.End.Format("2006-01-02 15:04:05.000000"))
-	file.SetCellValue(sheet, fmt.Sprintf("D%d", row), fmt.Sprintf("%d", data.End.Sub(data.Start).Milliseconds()))
-	file.SetCellValue(sheet, fmt.Sprintf("E%d", row), fmt.Sprintf("%d", data.End.Sub(data.Start).Nanoseconds()))
-	file.SetCellValue(sheet, fmt.Sprintf("F%d", row), data.Status)
+	err := file.SetCellValue(sheet, fmt.Sprintf("A%d", row), data.RequestNumber)
+	if err != nil {
+		log.Println(err)
+	}
+
+	err = file.SetCellValue(sheet, fmt.Sprintf("B%d", row), data.Start.Format("2006-01-02 15:04:05.000000"))
+	if err != nil {
+		log.Println(err)
+	}
+
+	err = file.SetCellValue(sheet, fmt.Sprintf("C%d", row), data.End.Format("2006-01-02 15:04:05.000000"))
+	if err != nil {
+		log.Println(err)
+	}
+
+	err = file.SetCellValue(sheet, fmt.Sprintf("D%d", row), fmt.Sprintf("%d", data.End.Sub(data.Start).Milliseconds()))
+	if err != nil {
+		log.Println(err)
+	}
+
+	err = file.SetCellValue(sheet, fmt.Sprintf("E%d", row), fmt.Sprintf("%d", data.End.Sub(data.Start).Nanoseconds()))
+	if err != nil {
+		log.Println(err)
+	}
+
+	err = file.SetCellValue(sheet, fmt.Sprintf("F%d", row), data.Status)
+	if err != nil {
+		log.Println(err)
+	}
 
 	return file
 }
@@ -125,37 +200,132 @@ func (u *ExcelUsecase) addElasticMonitoringHeader(sheet string, file *excelize.F
 		"JVM Heap Used (Bytes)", "JVM Heap Used (%)", "JVM Heap Committed (Bytes)", "JVM Heap Max (Bytes)",
 		"JVM Non Heap Used (Bytes)", "JVM Non Heap Committed (Bytes)",
 	}
+	var err error
 	for i, header := range headers {
-		cell := fmt.Sprintf("%s%d", string('A'+i), rowCounter)
-		file.SetCellValue(sheet, cell, header)
+		cell := fmt.Sprintf("%s%d", string(rune('A'+i)), rowCounter)
+		err = file.SetCellValue(sheet, cell, header)
+		if err != nil {
+			log.Println(err)
+		}
 	}
 	return file, rowCounter + 1
 }
 
 func (u *ExcelUsecase) addElasticMonitoringRow(sheet string, file *excelize.File, rowCounter int, data domain.ElasticMonitoring) (*excelize.File, int) {
-	file.SetCellValue(sheet, fmt.Sprintf("A%d", rowCounter), data.Timestamp)
-	file.SetCellValue(sheet, fmt.Sprintf("B%d", rowCounter), data.Node)
-	file.SetCellValue(sheet, fmt.Sprintf("C%d", rowCounter), data.Memory.TotalInBytes)
-	file.SetCellValue(sheet, fmt.Sprintf("D%d", rowCounter), data.Memory.FreeInBytes)
-	file.SetCellValue(sheet, fmt.Sprintf("E%d", rowCounter), data.Memory.UsedInBytes)
-	file.SetCellValue(sheet, fmt.Sprintf("F%d", rowCounter), data.Memory.FreePercent)
-	file.SetCellValue(sheet, fmt.Sprintf("G%d", rowCounter), data.Memory.UsedPercent)
-	file.SetCellValue(sheet, fmt.Sprintf("H%d", rowCounter), data.Disk.LeastUsedDiskPercent)
-	file.SetCellValue(sheet, fmt.Sprintf("I%d", rowCounter), data.Disk.LeastTotalInBytes)
-	file.SetCellValue(sheet, fmt.Sprintf("J%d", rowCounter), data.Disk.LeastAvailableInBytes)
-	file.SetCellValue(sheet, fmt.Sprintf("K%d", rowCounter), data.Disk.MostUsedDiskPercent)
-	file.SetCellValue(sheet, fmt.Sprintf("L%d", rowCounter), data.Disk.MostTotalInBytes)
-	file.SetCellValue(sheet, fmt.Sprintf("M%d", rowCounter), data.Disk.MostAvailableInBytes)
-	file.SetCellValue(sheet, fmt.Sprintf("N%d", rowCounter), data.ThreadPoolFs.TotalInBytes)
-	file.SetCellValue(sheet, fmt.Sprintf("O%d", rowCounter), data.ThreadPoolFs.FreeInBytes)
-	file.SetCellValue(sheet, fmt.Sprintf("P%d", rowCounter), data.ThreadPoolFs.AvailableInBytes)
-	file.SetCellValue(sheet, fmt.Sprintf("Q%d", rowCounter), data.CPU.Percent)
-	file.SetCellValue(sheet, fmt.Sprintf("R%d", rowCounter), data.JVM.HeapUsedInBytes)
-	file.SetCellValue(sheet, fmt.Sprintf("S%d", rowCounter), data.JVM.HeapUsedPercent)
-	file.SetCellValue(sheet, fmt.Sprintf("T%d", rowCounter), data.JVM.HeapCommittedInBytes)
-	file.SetCellValue(sheet, fmt.Sprintf("U%d", rowCounter), data.JVM.HeapMaxInBytes)
-	file.SetCellValue(sheet, fmt.Sprintf("V%d", rowCounter), data.JVM.NonHeapUsedInBytes)
-	file.SetCellValue(sheet, fmt.Sprintf("W%d", rowCounter), data.JVM.NonHeapCommittedInBytes)
+	err := file.SetCellValue(sheet, fmt.Sprintf("A%d", rowCounter), data.Timestamp)
+	if err != nil {
+		log.Println(err)
+	}
+
+	err = file.SetCellValue(sheet, fmt.Sprintf("B%d", rowCounter), data.Node)
+	if err != nil {
+		log.Println(err)
+	}
+
+	err = file.SetCellValue(sheet, fmt.Sprintf("C%d", rowCounter), data.Memory.TotalInBytes)
+	if err != nil {
+		log.Println(err)
+	}
+
+	err = file.SetCellValue(sheet, fmt.Sprintf("D%d", rowCounter), data.Memory.FreeInBytes)
+	if err != nil {
+		log.Println(err)
+	}
+
+	err = file.SetCellValue(sheet, fmt.Sprintf("E%d", rowCounter), data.Memory.UsedInBytes)
+	if err != nil {
+		log.Println(err)
+	}
+
+	err = file.SetCellValue(sheet, fmt.Sprintf("F%d", rowCounter), data.Memory.FreePercent)
+	if err != nil {
+		log.Println(err)
+	}
+
+	err = file.SetCellValue(sheet, fmt.Sprintf("G%d", rowCounter), data.Memory.UsedPercent)
+	if err != nil {
+		log.Println(err)
+	}
+
+	err = file.SetCellValue(sheet, fmt.Sprintf("H%d", rowCounter), data.Disk.LeastUsedDiskPercent)
+	if err != nil {
+		log.Println(err)
+	}
+
+	err = file.SetCellValue(sheet, fmt.Sprintf("I%d", rowCounter), data.Disk.LeastTotalInBytes)
+	if err != nil {
+		log.Println(err)
+	}
+
+	err = file.SetCellValue(sheet, fmt.Sprintf("J%d", rowCounter), data.Disk.LeastAvailableInBytes)
+	if err != nil {
+		log.Println(err)
+	}
+
+	err = file.SetCellValue(sheet, fmt.Sprintf("K%d", rowCounter), data.Disk.MostUsedDiskPercent)
+	if err != nil {
+		log.Println(err)
+	}
+
+	err = file.SetCellValue(sheet, fmt.Sprintf("L%d", rowCounter), data.Disk.MostTotalInBytes)
+	if err != nil {
+		log.Println(err)
+	}
+
+	err = file.SetCellValue(sheet, fmt.Sprintf("M%d", rowCounter), data.Disk.MostAvailableInBytes)
+	if err != nil {
+		log.Println(err)
+	}
+
+	err = file.SetCellValue(sheet, fmt.Sprintf("N%d", rowCounter), data.ThreadPoolFs.TotalInBytes)
+	if err != nil {
+		log.Println(err)
+	}
+
+	err = file.SetCellValue(sheet, fmt.Sprintf("O%d", rowCounter), data.ThreadPoolFs.FreeInBytes)
+	if err != nil {
+		log.Println(err)
+	}
+
+	err = file.SetCellValue(sheet, fmt.Sprintf("P%d", rowCounter), data.ThreadPoolFs.AvailableInBytes)
+	if err != nil {
+		log.Println(err)
+	}
+
+	err = file.SetCellValue(sheet, fmt.Sprintf("Q%d", rowCounter), data.CPU.Percent)
+	if err != nil {
+		log.Println(err)
+	}
+
+	err = file.SetCellValue(sheet, fmt.Sprintf("R%d", rowCounter), data.JVM.HeapUsedInBytes)
+	if err != nil {
+		log.Println(err)
+	}
+
+	err = file.SetCellValue(sheet, fmt.Sprintf("S%d", rowCounter), data.JVM.HeapUsedPercent)
+	if err != nil {
+		log.Println(err)
+	}
+
+	err = file.SetCellValue(sheet, fmt.Sprintf("T%d", rowCounter), data.JVM.HeapCommittedInBytes)
+	if err != nil {
+		log.Println(err)
+	}
+
+	err = file.SetCellValue(sheet, fmt.Sprintf("U%d", rowCounter), data.JVM.HeapMaxInBytes)
+	if err != nil {
+		log.Println(err)
+	}
+
+	err = file.SetCellValue(sheet, fmt.Sprintf("V%d", rowCounter), data.JVM.NonHeapUsedInBytes)
+	if err != nil {
+		log.Println(err)
+	}
+
+	err = file.SetCellValue(sheet, fmt.Sprintf("W%d", rowCounter), data.JVM.NonHeapCommittedInBytes)
+	if err != nil {
+		log.Println(err)
+	}
 
 	return file, rowCounter + 1
 }
